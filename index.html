@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Products</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #746f6f;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #000000;
+            text-align: left;
+        }
+
+        .step-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .step-box {
+            padding: 20px;
+            background-color: #53ac74;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            width: 97%; 
+        }
+
+        .file-input-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            flex-grow: 1;
+        }
+
+        .file-status {
+            margin-left: 10px;
+        }
+
+        .dropdown-box {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown {
+            position: relative;
+            background-color: #eee;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+
+        .dropdown-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .dropdown:hover .dropdown-options {
+            display: block;
+        }
+
+        .option {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            margin-left: 5px;
+        }
+
+        .label {
+            margin-right: 10px;
+        }
+
+        .select-fields-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fields-box {
+            padding: 10px;
+            background-color: #eee;
+            border-radius: 10px;
+            width: 48%; 
+            margin-top: 10px;
+        }
+
+        .fields-list {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            height: 150px; 
+            overflow-y: auto;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .button {
+            margin: 5px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h2>Import Products</h2>
+
+    <div class="step-container">
+        <div class="step-box">
+            <p>Step 1: Select File</p>
+            <div class="file-input-container">
+                <label for="fileInput" class="file-input">
+                    Choose File
+                    <input type="file" id="fileInput">
+                </label>
+                <span class="file-status">No file chosen</span>
+            </div>
+            <p>Supported file types: CSV, JSON</p>
+        </div>
+
+        <div class="step-box">
+            <p>Step 2: Specify Format</p>
+            
+            
+            <div class="dropdown-box">
+                <div class="label">File Type</div>
+                <div class="dropdown">
+                    <span>CSV</span>
+                    <div class="dropdown-options">
+                        <div class="option">CSV</div>
+                        <div class="option">JSON</div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="dropdown-box">
+                <div class="label">Character Encoding</div>
+                <div class="dropdown">
+                    <span>UTF-8</span>
+                    <div class="dropdown-options">
+                        <div class="option">UTF-8</div>
+                        <div class="option">UTF-16</div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="dropdown-box">
+                <div class="label">Delimiter</div>
+                <div class="dropdown">
+                    <span>Comma</span>
+                    <div class="dropdown-options">
+                        <div class="option">Comma</div>
+                        <div class="option">Tab</div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="dropdown-box">
+                <input type="checkbox" id="hasHeaderCheckbox">
+                <label for="hasHeaderCheckbox" class="label">Has Header</label>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="step-box">
+        <input type="checkbox" id="displayHandlingCheckbox">
+        <label for="displayHandlingCheckbox">Display Handling</label>
+
+        <div class="select-fields-container">
+            
+            <div class="fields-box">
+                <p>Available Fields</p>
+                <div class="fields-list" id="availableFieldsList">
+                    
+                </div>
+            </div>
+
+            
+            <div class="button-container">
+                <button class="button" onclick="moveToDisplay()">>></button>
+                <button class="button" onclick="moveToAvailable()"><<</button>
+            </div>
+
+            
+            <div class="fields-box">
+                <p>Fields to be Displayed</p>
+                <div class="fields-list" id="displayFieldsList">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const availableFieldsList = document.getElementById('availableFieldsList');
+        const displayFieldsList = document.getElementById('displayFieldsList');
+        const displayHandlingCheckbox = document.getElementById('displayHandlingCheckbox');
+    
+        
+        fetch('https://s3.amazonaws.com/open-to-cors/assignment.json')
+            .then(response => response.json())
+            .then(data => {
+                
+                Object.keys(data.products).forEach(productId => {
+                    const option = document.createElement('option');
+                    option.value = productId;
+                    option.text = data.products[productId].title;
+                    availableFieldsList.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error fetching or parsing data:', error));
+    
+        function moveToDisplay() {
+            
+            const selectedOptions = Array.from(availableFieldsList.querySelectorAll('option:checked'));
+            selectedOptions.forEach(option => {
+                displayFieldsList.appendChild(option.cloneNode(true));
+            });
+        }
+    
+        function moveToAvailable() {
+            
+            const selectedOptions = Array.from(displayFieldsList.querySelectorAll('option:checked'));
+            selectedOptions.forEach(option => {
+                availableFieldsList.appendChild(option);
+            });
+        }
+    
+        
+        displayHandlingCheckbox.addEventListener('change', function () {
+            if (this.checked) {
+                
+                document.querySelector('.select-fields-container').style.display = 'flex';
+            } else {
+                
+                document.querySelector('.select-fields-container').style.display = 'none';
+            }
+        });
+    </script>
+    </body>
+</html>
